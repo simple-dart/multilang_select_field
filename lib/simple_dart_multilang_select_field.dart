@@ -4,8 +4,6 @@ import 'package:simple_dart_multilang_controller/simple_dart_multilang_controlle
 import 'package:simple_dart_select_field/simple_dart_select_field.dart';
 
 class MultilangSelectField<T> extends SelectField<T> {
-  final Map<String, String> _optionKeyMap = <String, String>{};
-
   @override
   void initOptions(List<T> options) {
     optionList = options;
@@ -15,8 +13,24 @@ class MultilangSelectField<T> extends SelectField<T> {
     for (final obj in options) {
       final langKey = adapter(obj);
       final option = multilangController.translate(langKey);
-      _optionKeyMap[option] = langKey;
       selectElement.append(OptionElement()..text = option);
+    }
+  }
+
+  @override
+  void initOptionsWithGroups(Map<String, List<T>> groups) {
+    clear();
+    for (final group in groups.entries) {
+      final optGroup = OptGroupElement()..label = multilangController.translate(group.key);
+      for (final option in group.value) {
+        final langKey = adapter(option);
+        final optionElement = OptionElement()
+          ..text = multilangController.translate(langKey)
+          ..value = multilangController.translate(langKey);
+        optGroup.append(optionElement);
+        optionList.add(option);
+      }
+      selectElement.append(optGroup);
     }
   }
 
@@ -47,18 +61,10 @@ class MultilangSelectField<T> extends SelectField<T> {
 
   @override
   void reRender() {
-    final oldValue = value;
+    var i = 0;
     for (final optionElement in selectElement.options) {
-      optionElement.remove();
+      optionElement.text = multilangController.translate(adapter(optionList[i]));
+      i++;
     }
-    _optionKeyMap.clear();
-    for (final obj in optionList) {
-      final langKey = adapter(obj);
-      final option = multilangController.translate(langKey);
-      final optionElement = OptionElement()..text = option;
-      selectElement.append(optionElement);
-      _optionKeyMap[option] = langKey;
-    }
-    value = oldValue;
   }
 }
